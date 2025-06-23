@@ -1,0 +1,6 @@
+lib/ffpopt/pkgdata/__init__.py
+lib/ffpopt/pkgdata/mace-off/mace_off23/MACE-OFF23_large.model
+lib/ffpopt/pkgdata/mace-off/mace_off23/MACE-OFF23_medium.model
+lib/ffpopt/pkgdata/mace-off/mace_off23/MACE-OFF23_small.model
+lib/ffpopt/pkgdata/mace-off/mace_off24/MACE-OFF24_medium.model
+lib/ffpopt/pkgdata/qdpi/qdpi-2.0.pb

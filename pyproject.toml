@@ -1,0 +1,51 @@
+[build-system]
+requires = ["scikit-build-core>=0.3.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "ffpopt"
+version = "0.1"
+description = "force field parameter optimizer"
+authors = [
+  {name = "Timothy J. Giese", email = "TimothyJGiese@gmail.com"},
+]
+# license = {file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 5 - Production/Stable",
+]
+dependencies = [
+    'scipy',
+    'matplotlib',
+    'ase',
+    'geometric'
+]
+requires-python = ">=3.5"
+# readme = "README.md"
+keywords = ["molecular mechanics"]
+
+[project.urls]
+# repository = "https://"
+
+[project.scripts]
+"ffpopt-DihedScan.py" = "ffpopt.scripts:ffpopt_DihedScan"
+"ffpopt-Optimize.py" = "ffpopt.scripts:ffpopt_Optimize"
+"ffpopt-GenDihedFit.py" = "ffpopt.scripts:ffpopt_GenDihedFit"
+"ffpopt-DihedTwistWorkflow.py" = "ffpopt.scripts:ffpopt_DihedTwistWorkflow"
+
+#"edgembar" = "edgembar.scripts:edgembar"
+#"edgembar_omp" = "edgembar.scripts:edgembar_omp"
+#"edgembar-amber2dats.py" = "edgembar.scripts:edgembar_amber2dats"
+#"edgembar-WriteGraphHtml.py" = "edgembar.scripts:edgembar_WriteGraphHtml"
+#"edgembar-calcamberboresch.py" = "edgembar.scripts:edgembar_calcamberboresch"
+
+[tool.scikit-build]
+wheel.py-api = "py2.py3"
+wheel.packages = [
+    "src/python/lib/ffpopt",
+]
+wheel.install-dir = "ffpopt"
+sdist.exclude = [
+    "/distrib",
+]
+

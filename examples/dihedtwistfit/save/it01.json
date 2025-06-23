@@ -1,0 +1,124 @@
+{
+    "params": {
+        "LIG_o-ce-ca-ca": {
+            "nprim": 3,
+            "masks": null
+        },
+        "LIG_ss-cd-nf-ce": {
+            "nprim": 3,
+            "masks": null
+        },
+        "LIG_nf-ce-ca-ca": {
+            "nprim": 3,
+            "masks": null
+        },
+        "LIG_cd-nf-ce-ca": {
+            "nprim": 3,
+            "masks": null
+        },
+        "LIG_cd-nf-ce-o": {
+            "nprim": 3,
+            "masks": null
+        },
+        "LIG_nc-cd-nf-ce": {
+            "nprim": 3,
+            "masks": null
+        }
+    },
+    "output": "it01.frcmod",
+    "systems": [
+        {
+            "parm": "minimal_orig.parm7",
+            "crd": "minimal_orig.rst7",
+            "output": "it01.py",
+            "params": {
+                "LIG_ss-cd-nf-ce": [
+                    [
+                        "@S10",
+                        "@C9",
+                        "@N8",
+                        "@C7"
+                    ]
+                ],
+                "LIG_nc-cd-nf-ce": [
+                    [
+                        "@N13",
+                        "@C9",
+                        "@N8",
+                        "@C7"
+                    ]
+                ],
+                "LIG_cd-nf-ce-ca": [
+                    [
+                        "@C9",
+                        "@N8",
+                        "@C7",
+                        "@C3"
+                    ]
+                ],
+                "LIG_cd-nf-ce-o": [
+                    [
+                        "@C9",
+                        "@N8",
+                        "@C7",
+                        "@O7"
+                    ]
+                ],
+                "LIG_o-ce-ca-ca": [
+                    [
+                        "@O7",
+                        "@C7",
+                        "@C3",
+                        "@C2"
+                    ],
+                    [
+                        "@O7",
+                        "@C7",
+                        "@C3",
+                        "@C4"
+                    ]
+                ],
+                "LIG_nf-ce-ca-ca": [
+                    [
+                        "@N8",
+                        "@C7",
+                        "@C3",
+                        "@C2"
+                    ],
+                    [
+                        "@N8",
+                        "@C7",
+                        "@C3",
+                        "@C4"
+                    ]
+                ]
+            },
+            "profiles": [
+                {
+                    "hl": "qdpi2_10-9-8-6.xyz",
+                    "ll": "orig_10-9-8-6.xyz",
+                    "name": "it01",
+                    "plots": [
+                        "LIG_ss-cd-nf-ce"
+                    ]
+                },
+                {
+                    "hl": "qdpi2_9-8-6-2.xyz",
+                    "ll": "orig_9-8-6-2.xyz",
+                    "name": "it01",
+                    "plots": [
+                        "LIG_cd-nf-ce-ca"
+                    ]
+                },
+                {
+                    "hl": "qdpi2_7-6-2-1.xyz",
+                    "ll": "orig_7-6-2-1.xyz",
+                    "name": "it01",
+                    "plots": [
+                        "LIG_o-ce-ca-ca"
+                    ]
+                }
+            ]
+        }
+    ]
+}
