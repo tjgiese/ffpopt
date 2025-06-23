@@ -19,7 +19,7 @@
 #   [Currently, this appears to work for cuda 12.5 and cuda 12.6]
 #
 #   python3 -m pip install torch torchvision torchaudio
-#   python3 -m pip install tblite mace-torch geometric aimnet torchani
+#   python3 -m pip install cmake tblite mace-torch geometric aimnet torchani
 #
 # 5. Re-enter the environment
 #   conda deactivate

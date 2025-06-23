@@ -107,7 +107,7 @@ class GenCalculator(Calculator):
             from ase.calculators.psi4 import Psi4
             theory,basis = self.mode.split("/")
             memory = kwargs.get("memory","1gb")
-            num_threads = kwargs.get("num_threads",4)
+            num_threads = int(kwargs.get("num_threads",4))
             self.calc = Psi4(method=theory,memory=memory,basis=basis,num_threads=num_threads,charge=self.charge,multiplicity=1)
         else:
             raise Exception(f"Unknown mode: {self.mode}")
