@@ -16,9 +16,10 @@
 #      e. tblite (provides --model=xtb and needed for --model=qdpi2)
 #      f. psi4 (profides --model="theory/basis")
 #
-#  2. Install fppopt
+#  2. Install ffpopt
 #      cd build
 #      bash ./run_cmake.sh
+#      (by default, run_cmake.sh installs to ../local)
 #
 #  If you have a modern OS, it's easiest to install the dependencies
 #  using conda; however, note that the psi4 conda package will install
@@ -60,11 +61,12 @@
 # 4. Install packages
 #   conda install -y dpdata deepmd-kit ase parmed dacase::ambertools-dac=25
 #
-# NOTE: The precompiled dacase::ambertools-dac=25 package is not binary compatible
-# with older versions of glibc that may be present on many compute clusters.
-# In this case, you should compile the latest AmberTools from source.
-# Alternatively, if you do not want or need to perform MM calculations with sander,
-# then you can exclude AmberTools from the installation. (One still needs parmed.)
+# NOTE: The precompiled dacase::ambertools-dac=25 package is not
+# binary compatible with older versions of glibc that may be present
+# on many compute clusters. In this case, you should compile the
+# latest AmberTools from source. Alternatively, if you do not want
+# or need to perform MM calculations with sander, then you can exclude
+# AmberTools from the installation. (One still needs parmed.)
 #
 # For ab initio support with psi4, one can include the "psi4" package in the
 # conda installation command; however, the precompiled binaries may not be
@@ -95,12 +97,14 @@
 # Dependency installation from pip
 # ------------------------------------------------------------------
 #
-# We will need to install 2 versions: one for pytorch and the other for tensorflow
+# We will need to install 2 versions: one for pytorch and the
+# other for tensorflow
 #
 # 1. Download the miniforge installer
 #   wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
 #
-# 2. Install the tensorflow python version (make sure you have gcc 9.3 (or newer) loaded to compile deepmd-kit with -std=c++20
+# 2. Install the tensorflow python version (make sure you have
+#    gcc 9.3 (or newer) loaded to compile deepmd-kit with -std=c++20
 #   bash ./Miniforge3-Linux-x86_64.sh -b -f -p ${PWD}/tensorflow
 #   source ${PWD}/tensorflow/bin/activate
 #   python3 -m pip install cmake==3.30 tensorflow dpdata deepmd-kit ase parmed geometric tblite
@@ -120,9 +124,11 @@
 #   conda install -y psi4
 #   conda deactivate
 #
-# Make sure the PYTHONPATH  within ${PWD}/psi4 does not prepend those in ${PWD}/tensorflow nor ${PWD}/pytorch
-# because parmed/ambertools require numpy<2, whereas conda installation of psi4 provides numpy==2
-# But psi4 can still run with numpy<2
+# Make sure the PYTHONPATH  within ${PWD}/psi4 does not
+# prepend those in ${PWD}/tensorflow nor ${PWD}/pytorch
+# because parmed/ambertools require numpy<2, whereas conda
+# installation of psi4 provides numpy==2 But psi4 can still
+# run with numpy<2
 #
 #
 # ------------------------------------------------------------------
@@ -292,3 +298,145 @@
 #        and applied globally (even if the atom quartet isn't being
 #        scanned).  The global parameters are also written to a
 #        frcmod file.
+#
+#
+# -------------------------------------------------
+# JSON input file format for ffpopt-GenDihedFit.py
+# -------------------------------------------------
+# The json file contains 3 main keys: params, output, and systems.
+#
+# The params dictionary provides a petite list of unique dihedral
+# parameters.  Its subkeys are "nprim" and "masks".
+#
+# The nprim value is the integer number of primitive dihedrals.
+# For example, nprim=3 would model the dihedral with 3 torsion
+# potentials with periodicities 1, 2, and 3. The corresponding
+# 3 force constants are to be determined.
+#
+# The masks value is either "null" or a list containing
+# sublists of 4 atom type amber masks. If the value is null,
+# then the parameter is
+# "bespoke"; that is, the potential must be manually mapped
+# to atom name quartets. In constrast, if a list of atom type
+# masks are provided, then the potential is applied to all
+# proper torsions with a matching set of atom types -- even
+# if those torsions are not being scanned.  These are "global"
+# parameters that can be written into a frcmod file and applied
+# via tleap.
+# An example, to define a global parameter applied to all
+# cd-nf-ce-o torsions, one would set "masks": [ ["@%cd","@%nf","@%ce","@%o"] ].
+# The value of masks is a list of lists because one could choose
+# to parametrize a single potential for multiple atom type
+# quartets.
+#
+# The "output" value is the name of an output frcmod file.
+# All global parameters will be written to the frcmod file.
+# If all parameters are bespoke, then the frcmod file is empty.
+#
+# The "systems" value is a list of dictionaries. Each element
+# of the list describes a "system"; a system is characterized
+# by a parm7 file. If you have multiple conformations and/or
+# scans that all use the same parm7 file, then you only have
+# 1 system.  In contrast, you may be parametrizing a potential
+# that exists in multiple molecules, in which each system
+# refers to the same set of training parameters.
+#
+# A system's dictionary contains several keys.
+# parm: the name of an amber parm7 input file.
+# crd: the name of a formatted rst7 input file.
+# output: the name of a python output file.
+# params: a dictionary that describes how to map
+# the parameters to the atoms.
+# profiles: a list that collects high-level and
+# low-level structures used to train the parameters.
+# Each profile is a series of structures that
+# share an arbitrary, yet common, zero-of-energy.
+#
+# The each key of the params dictionary is one of
+# unique parameters. The value is a list-of-lists.
+# Each sublist contains 4 elements: the amber masks
+# that select each of the 4 atoms in the torsion
+# BY ATOM NAME; e.g., [ "@C1", "@C2", "C3", "@H1" ]
+# You do not need to map global parameters; therefore,
+# if all parameters were global parameters, then the
+# "params" dictionary would be empty, {}. If the same
+# unique parameter should be applied to more than one
+# quartet, then there would be a sublist for each
+# quartet.
+#
+# The profiles value is a list of dictionaries.
+# Each dictionary describes a "scan"; it contains the
+# keys: hl, ll, name, and plots.
+# The hl value is the name of a scan performed with a
+# target model chemistry. These are the energies we
+# would like to reproduce.
+# The ll value is the scan performed with the force field
+# before changing the parameters.
+# The name value is a prefix applied to the plots generated
+# during the nonlinear optimization procedure.
+# The "plots" value is a list of strings used to further
+# define filenames.
+#
+# The following is an example that parametrizes a single
+# bespoke potential
+#
+# {
+#    "params": {
+#        "param_name_1": {
+#           "nprim": 3,
+#           "masks": null
+#         }
+#    },
+#    "output": "global.frcmod",
+#    "systems": [
+#       {
+#           "parm": "system1.parm7",
+#           "crd":  "system1.rst7",
+#           "output": "system1.py",
+#           "params": {
+#                  "param_name_1": [
+#                     [ "@AtomName1", "@AtomName2", "@AtomName3", "@AtomName4" ]
+#                  ]
+#           },
+#           "profiles": [
+#               {
+#                   "hl": "highlevel_scan.xyz",
+#                   "ll": "lowlevel_scan.xyz",
+#                   "name": "output_plot_prefix",
+#                   "plots": [
+#                        "param_name_1"
+#                   ]
+#               }
+#           ]
+#       }
+# }
+#
+# The following is an example that optimizes a global parameter.
+#
+# {
+#    "params": {
+#        "param_name_1": {
+#           "nprim": 3,
+#           "masks": [ ["@%nf","@%ce","@%ca","@%ca"] ]
+#         }
+#    },
+#    "output": "global.frcmod",
+#    "systems": [
+#       {
+#           "parm": "system1.parm7",
+#           "crd":  "system1.rst7",
+#           "output": "system1.py",
+#           "params": {},
+#           "profiles": [
+#               {
+#                   "hl": "highlevel_scan.xyz",
+#                   "ll": "lowlevel_scan.xyz",
+#                   "name": "output_plot_prefix",
+#                   "plots": [
+#                        "param_name_1"
+#                   ]
+#               }
+#           ]
+#       }
+# }
+#
