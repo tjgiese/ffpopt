@@ -89,7 +89,7 @@
 # the xtb-python package is no longer maintained, and the authors recommend
 # using tblite instead.
 #
-
+#
 #
 # ------------------------------------------------------------------
 # Dependency installation from pip
@@ -124,6 +124,171 @@
 # because parmed/ambertools require numpy<2, whereas conda installation of psi4 provides numpy==2
 # But psi4 can still run with numpy<2
 #
-
-
-
+#
+# ------------------------------------------------------------------
+# Documentation
+# ------------------------------------------------------------------
+#
+# All scripts support a collection of common options, and each script
+# includes a few script-specific options.
+#
+# The common options are:
+#   --model : str
+#       Select the model chemistry. The available options depend on
+#       which dependencies were installed. The default value is
+#       "sander". Other options include xtb, qdpi2, mace, aimnet2,
+#       aimnet2_wb97m (aimnet2 is an alias for aimnet2_wb97m),
+#       aimnet2_b973c, aimnet2_qr, ani1x, ani2x, ani1ccx, theory/basis
+#
+#  --no-opt
+#       Calculate a single point energy rather than a geometry
+#       optimization
+#
+#  --ase-opt
+#       Use the ASE optimzer rather than geomeTRIC
+#
+#  --geometric-maxiter: int
+#       Number of geometry optimization steps when using geometric.
+#       Default: 500
+#
+#  --geometric-coordsys: str
+#       Coordinate system. Default: tric
+#
+#  --geometric-converge: str
+#       Optimization tolerance. Default: 'set GAU_TIGHT'
+#
+#  --geometric-enforce: float
+#       Constraint enforcement tolerance. Default 0.1
+#
+#  --psi4-memory: str
+#       Amount of RAM used by psi4. Default: '1gb'
+#
+#  --psi4-num-threads: int
+#       The number of psi4 threads. Default: 4
+#
+#  --parm: str
+#       The amber parm7 file. This is always required.
+#
+#  --crd: str
+#       The amber formatted rst7 file. This is always required.
+#
+# 
+# -----------------
+# ffpopt-Optimze.py
+# -----------------
+#   Reads parm7 & rst7, performs a geometry optimization, and writes
+#   the structure and energy to --oscan=oscan.xyz
+#   If --no-opt is provided, then it calculates a single point energy.
+#   If --iscan=iscan.xyz is provided, then it performs a geometry
+#   optimization of each structure within iscan.xyz.
+#   If --iscan and --no-opt are provided, then it performs a single
+#   point calculation for each structure.
+#   If --ase-opt is given, then the ASE BFGS optimizer is used
+#   (the default is to optimize with geomeTRIC).
+#
+#   --oscan: str
+#       The output xyz filename
+#
+#   --iscan: str
+#       Optional. The input xyz filename. If not provided, the
+#       coordinates within --crd are used.
+#
+#   --ignore
+#       If present, then ignore the constraint definitions stored
+#       within the xyz file. The default behavior is to enforce
+#       the constraints specified within --iscan.
+#
+#   --constrain: str
+#       A comma-separated list of 2, 3, or 4 zero-based integers
+#       (the first atom is index 0).  The list can be appended with
+#       =value to specify a constraint value, otherwise the constraint
+#       value is the initial value calculated from the input
+#       coordinates. This option can be used multiple times to enforce
+#       multiple constraints.
+#       For example,
+#       --constrain='0,1=2.0' will constrain the bond between the
+#       first 2 atoms to be 2.0 Angstroms.
+#       --constrain='0,1,2=30.' will constrain the angle between the
+#       first 3 atoms to be 30. degrees.
+#       A list of 4 atoms constrains a dihedral.
+#
+# -------------------
+# ffpopt-DihedScan.py
+# -------------------
+#   Reads parm7 & rst7 and a list of 4 atoms defining a dihedral angle.
+#   It then scans the dihedral with a series of relaxed optimizations.
+#   The procedure is to: 1. optimize for a minimum. 2. Create a schedule
+#   of angles that uniformly span [0,360). 3. Find the position in the
+#   schedule that best matches the optimized dihedral. 4. Sequentially
+#   optimize the dihedrals in the schedule in the foward direction until
+#   all 360 degrees are considered. 5. Repeat the scan in the reverse
+#   direction. 6. Sort the two scan and choose the geometry & energy
+#   that produced the lowest energy.  The output structures are written
+#   to --oscan.
+#
+#   --dihed: str
+#        A comma-separated list of 4 zero-based integers defining a
+#        dihedral angle.
+#
+#   --oscan: str
+#        The output XYZ file
+#
+#   --delta: int
+#        The scan spacing. Default: 10 degrees
+#
+#   --constrain: str
+#        Additional constraints applied to each structure.
+#        These can be bonds, angles, or dihedrals. These coordinates
+#        are not scanned. See ffpopt-Optimize.py for an extended
+#        description. This option can be used more than once.
+#
+#
+# ----------------------
+# ffpopt-GenDihedFit.py
+# ----------------------
+#   Reads a json input file and optimize torsion parameters.
+#
+#   inp: str, positional argument
+#        The name of the json file.
+#
+#   --stride: int
+#        The stride used when reading the input scans. Default: 1
+#
+#   --nlmaxiter: int
+#        Maximum number of nonlinear optimization steps. Default: 200
+#
+#   --nlrhobeg: float
+#        Initial parameter displacements. Default: 0.25 kcal/mol.
+#
+#   --nltol: float
+#        Parameter optimization termination tolerance. Default: 0.01.
+#
+#
+# -----------------------------
+# ffpopt-DihedTwistWorkflow.py
+# -----------------------------
+#   Reads a json input file and writes a bash script that uses
+#   ffpopt-DihedScan.py and ffpopt-GenDihedFit.py to iteratively
+#   parametrize torsion potentials.
+#   
+#   --bond: str
+#        Two 0-based integers separated by a comma. This option
+#        can be used more than once.
+#
+#   --delta: int
+#        The scan spacing. Default: 10 degrees
+#
+#   --nprim: int
+#        The number of primitive torsion functions applied to each
+#        dihedral. Default: 3
+#
+#   --maxiter: int
+#        The number of training iterations. Each iteration repeats
+#        the sander scans with the current set of parameters.
+#        Default: 2
+#
+#   --bytype
+#        If present, then all parameters are based on atom types,
+#        and applied globally (even if the atom quartet isn't being
+#        scanned).  The global parameters are also written to a
+#        frcmod file.
