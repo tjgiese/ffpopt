@@ -1,3 +1,48 @@
+# ------------------------------------------------------------------
+# Installation
+# ------------------------------------------------------------------
+#
+# 1. Install the dependencies. Most dependencies are optional.
+#    Optional packages (technically)
+#      a. sander/pysander (provides --model=sander)
+#      b. dpdata & deepmd-kit & tensorflow (provides --model=qdpi2)
+#      c. torchani, aimnet, mace are all pytorch models providing
+#         --model=mace --model=aimnet2, --model=aimnet2_wb97m 
+#                      (aimnet2 is an alias for aimnet2_wb97m)
+#         --model=aimnet2_b973c --model=aimnet2_qr
+#         --model=ani1x --model=ani2x --model=ani1ccx
+#      d. If the pytorch models are not used, then torch, 
+#         torchvision, and torchaudio are optional as well.
+#      e. tblite (provides --model=xtb and needed for --model=qdpi2)
+#      f. psi4 (profides --model="theory/basis")
+#
+#  2. Install fppopt
+#      cd build
+#      bash ./run_cmake.sh
+#
+#  If you have a modern OS, it's easiest to install the dependencies
+#  using conda; however, note that the psi4 conda package will install
+#  numpy-2.x, whereas parmed requires numpy-1.x.  You will need to
+#  create a separate conda installation specifically for psi4. If
+#  you install psi4 in miniforge3_psi4 and all other dependencies in
+#  miniforge3_allother, then you can *prepend* the bin and site-packages
+#  from miniforge3_allother to your PATH and PYTHONPATH variables,
+#  and then *append* the bin and site-packages from miniforge3_psi4.
+#  The psi4 pacakge will still run with numpy-1.x even though it
+#  installs numpy-2.x; and the procedure that I've described will
+#  cause the numpy-1.x installation to be loaded rather than 2.x.
+#
+#  If you are on a cluster that has an "old" glibc version, then
+#  the  dacase::ambertools-dac=25 package may not work correctly.
+#  One cannot use the unofficial "ambertools" conda package because
+#  that version of the code has a bug in the charmm module that
+#  produces memory leaks and segmentation faults when the calculator
+#  is reloaded more than 1 time.  For older machines, you should
+#  install ambertools from source and install the other dependencies
+#  using pip. You will need to create separate installations for
+#  tensorflow and pytorch models. The tensorflow and pytorch packages
+#  require different versions of the nvidia libraries that are
+#  incompatible with each other.
 #
 # ------------------------------------------------------------------
 # Dependency installation from conda
@@ -79,7 +124,6 @@
 # because parmed/ambertools require numpy<2, whereas conda installation of psi4 provides numpy==2
 # But psi4 can still run with numpy<2
 #
-# If you install deepmd-kit and tensorflow via pip, then 
-#
+
 
 
