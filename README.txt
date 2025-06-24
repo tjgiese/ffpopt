@@ -59,7 +59,7 @@
 #   source ${PWD}/miniforge3/bin/activate
 #
 # 4. Install packages
-#   conda install -y dpdata deepmd-kit ase parmed dacase::ambertools-dac=25
+#   conda install -y dpdata deepmd-kit ase parmed dacase::ambertools-dac=25 dftd3-python
 #
 # NOTE: The precompiled dacase::ambertools-dac=25 package is not
 # binary compatible with older versions of glibc that may be present
@@ -107,7 +107,7 @@
 #    gcc 9.3 (or newer) loaded to compile deepmd-kit with -std=c++20
 #   bash ./Miniforge3-Linux-x86_64.sh -b -f -p ${PWD}/tensorflow
 #   source ${PWD}/tensorflow/bin/activate
-#   python3 -m pip install cmake==3.30 tensorflow dpdata deepmd-kit ase parmed geometric tblite
+#   python3 -m pip install cmake==3.30 tensorflow dpdata deepmd-kit ase parmed geometric tblite dftd3
 #   conda deactivate
 #
 # 3. Install the pytorch version (with incompatible nvidia library dependencies)
@@ -121,7 +121,7 @@
 # 6. Install psi4
 #   bash ./Miniforge3-Linux-x86_64.sh -b -f -p ${PWD}/psi4
 #   source ${PWD}/psi4/bin/activate
-#   conda install -y psi4
+#   conda install -y psi4 simple-dftd3 dftd3-python
 #   conda deactivate
 #
 # Make sure the PYTHONPATH  within ${PWD}/psi4 does not
