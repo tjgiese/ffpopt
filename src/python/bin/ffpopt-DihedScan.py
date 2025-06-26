@@ -42,6 +42,12 @@ if __name__ == "__main__":
          type=str,
          action='append')
 
+    parser.add_argument \
+        ("-n","--nproc",
+         help="Number of optimizations to run at a time. Default: 1 (maximum: 2)",
+         default=1,
+         type=int)
+    
     AddStandardOptions(parser)
 
     args = parser.parse_args()
@@ -59,8 +65,13 @@ if __name__ == "__main__":
         raise Exception("--delta must be > 0")
     
     sched = np.arange(0,360,args.delta)
-    
-    mingeom,scan = FwdRevDihedScan(stdargs.atoms,stdargs,con,extracons,sched)
+
+    parallel = False
+    if args.nproc > 1:
+        parallel = True
+        
+    mingeom,scan = FwdRevDihedScan(stdargs.atoms,stdargs,con,extracons,sched,
+                                   parallel=parallel)
     
     ase.io.write(args.oscan,scan,format="extxyz")
 

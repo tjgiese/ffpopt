@@ -244,13 +244,23 @@ def EnergyScansWithoutDihedrals(stdargs,list_of_scans,cons):
     from . AmberParm import CopyParm
     from . Dihedrals import DeleteDihedrals
     from . Dihedrals import GetMultiDihedFcnFromIdxs
+    from tempfile import mkstemp
+    import os
     
     p = CopyParm(stdargs.mol)
     
     DeleteDihedrals(p,[ x.idxs for x in cons ])
 
-    p.save("tmp.parm7",overwrite=True)
-    calc = stdargs.MakeCalc(parm="tmp.parm7")
+    fd,path = mkstemp(dir=".",prefix="tmp.",suffix=".parm7")
+    if not os.isatty(fd):  # Check if fd is still valid
+        os.close(fd)
+    #fh = os.fdopen(fd,"w")
+    #p.save("tmp.parm7",overwrite=True)
+    p.save(path,overwrite=True,format="amber")    
+    #calc = stdargs.MakeCalc(parm="tmp.parm7")
+    calc = stdargs.MakeCalc(parm=path)
+    if os.path.exists(path):
+        os.remove(path)
     
     list_of_enes = []
     for scan in list_of_scans:
@@ -736,7 +746,9 @@ def DihedFitObjFcn(x,self):
     from . GeomOpt import GeomOpt
     from . constants import AU_PER_KCAL_PER_MOL
     from . constants import AU_PER_ELECTRON_VOLT
-
+    from tempfile import mkstemp
+    import os
+    
     KCAL_PER_EV = AU_PER_ELECTRON_VOLT() / AU_PER_KCAL_PER_MOL()
   
     
@@ -747,8 +759,21 @@ def DihedFitObjFcn(x,self):
     self.set_params(x)
     for isys,s in enumerate(self.systems):
         p = s.make_new_parm()
-        p.save("tmp.parm7",overwrite=True)
-        s.stdargs.calc = s.stdargs.MakeCalc(parm="tmp.parm7")
+        
+        fd,path = mkstemp(dir=".",prefix="tmp.",suffix=".parm7")
+        if not os.isatty(fd):  # Check if fd is still valid
+            os.close(fd)
+        
+        #p.save("tmp.parm7",overwrite=True)
+        #s.stdargs.calc = s.stdargs.MakeCalc(parm="tmp.parm7")
+
+        p.save(path,overwrite=True,format="amber")    
+        s.stdargs.calc = s.stdargs.MakeCalc(parm=path)
+        if os.path.exists(path):
+            os.remove(path)
+    
+
+        
 
         for iprof,prof in enumerate(s.profiles):
             llene = []

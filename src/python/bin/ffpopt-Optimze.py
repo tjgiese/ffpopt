@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+
+def worker_function(atoms_econ_cons_tuple):
+    from ffpopt.GeomOpt import GeomOpt
+    atoms,econ,cons = atoms_econ_cons_tuple
+    if econ is None:
+        econ = cons
+    return GeomOpt(atoms,stdargs,constraints=econ)
+
+
+
 if __name__ == "__main__":
     from ffpopt.GeomOpt import GeomOpt
     from ffpopt.AmberParm import parmed2ase, parmed2graph
@@ -10,7 +20,8 @@ if __name__ == "__main__":
     import ase.io
     import numpy as np
     import argparse
-    
+    import multiprocessing
+
     parser = argparse.ArgumentParser \
         ( formatter_class=argparse.RawDescriptionHelpFormatter,
           description="""Perform a geometry optimization""" )
@@ -40,6 +51,11 @@ if __name__ == "__main__":
          action='store_true')
 
 
+    parser.add_argument \
+        ("-n","--nproc",
+         help="Number of optimizations to run at a time. Default 1",
+         default=1,
+         type=int)
     
     
     AddStandardOptions(parser)
@@ -63,12 +79,17 @@ if __name__ == "__main__":
                 raise Exception("Input structure has constraints, "+
                                 "but constraints were also given on "+
                                 "the command line. Use --ignore")
-        oxyz = []
-        for atoms,econ in zip(geoms,mcons):
-            if econ is None:
-                econ = cons
-            s = GeomOpt(atoms,stdargs,constraints=econ)
-            oxyz.append(s)
+        # oxyz = []
+        # for atoms,econ in zip(geoms,mcons):
+        #     if econ is None:
+        #         econ = cons
+        #     s = GeomOpt(atoms,stdargs,constraints=econ)
+        #     oxyz.append(s)
+
+        with multiprocessing.Pool(processes=args.nproc) as pool:
+            values = [ (atoms,econ,cons) for atoms,econ in zip(geoms,mcons) ] 
+            oxyz = pool.map(worker_function,values)
+        
         ase.io.write(args.oscan,oxyz,format="extxyz")
         
     else:

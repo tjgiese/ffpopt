@@ -50,7 +50,9 @@ def GeomOpt_GEOMETRIC(atoms,stdargs,constraints=None):
     from . Options import argparse2geometric
     from . Constraints import FillConstraints,ApplyConstraints
     from . Constraints import constraints2info,constraints2ase
-    
+    from tempfile import mkstemp
+    import os
+ 
     if True:
         #
         # Build the list of geomtric-optimize command line arguments
@@ -64,41 +66,56 @@ def GeomOpt_GEOMETRIC(atoms,stdargs,constraints=None):
         except:
             pass
 
-            
+
+        
+        fd,tmpxyz = mkstemp(dir=".",prefix="tmp.",suffix=".xyz")
+        if not os.isatty(fd):  # Check if fd is still valid
+            os.close(fd)
+
+        tmpopt = tmpxyz.replace(".xyz","_optim.xyz")
+        tmplog = tmpxyz.replace(".xyz",".log")
+        tmpcons = tmpxyz.replace(".xyz",".cons.inp")
+        tmpdir = tmpxyz.replace(".xyz",".tmp")
+
         cmds = argparse2geometric(stdargs.model,parm,stdargs.crd,stdargs.args)
-        cmds.append( "tmp.xyz" )
+        cmds.append( tmpxyz )
     
         cons = copy.deepcopy(constraints)
         myatoms = atoms.copy()
         if constraints is not None:
             cons = FillConstraints(myatoms,cons)
             myatoms = ApplyConstraints(myatoms,cons)
-            cmds.append("tmp.cons.inp")
-            fh = open("tmp.cons.inp","w")
+
+            cmds.append(tmpcons)
+            fh = open(tmpcons,"w")
             fh.write("$set\n")
             for con in cons:
                 line = con.to_geometric()
                 fh.write("%s\n"%(line))
             fh.close()
         
-        ase.io.write("tmp.xyz",myatoms)
+        ase.io.write(tmpxyz,myatoms)
 
         print("cmds=",cmds)
     
         result = subp.run(cmds,capture_output=False,text=True)
 
-        if not os.path.exists("tmp_optim.xyz"):
-            raise Exception("File not found: tmp_optim.xyz")
+        if not os.path.exists(tmpopt):
+            raise Exception(f"File not found: {tmpopt}")
     
-        out = ase.io.read("tmp_optim.xyz",index='-1')
+        out = ase.io.read(tmpopt,index='-1')
         keys = [ key for key in out.info ]
         ene = float(keys[-1]) / AU_PER_ELECTRON_VOLT()
         out.info = { "energy": ene }
         constraints2info(out,cons)
 
-        for f in ["tmp.xyz","tmp_optim.xyz","tmp.log"]:
+        for f in [tmpxyz,tmpopt,tmplog,tmpcons]:
             if os.path.exists(f):
                 os.remove(f)
+
+        if os.path.isdir(tmpdir):
+            import shutil
+            shutil.rmtree(tmpdir)
     
     return out
 
@@ -212,18 +229,33 @@ def DihedScan(atoms,stdargs,con,extracons,sched):
     return mingeom,scan
 
 
+def FwdRevDihedScan_worker(args):
+    return DihedScan(*args)
 
-def FwdRevDihedScan(atoms,stdargs,con,extracons,sched):
+
+def FwdRevDihedScan(atoms,stdargs,con,extracons,sched,parallel=False):
     
     import ase.io
     
-    fmingeom,fwd = DihedScan(atoms,stdargs,con,extracons,sched)
-
     revsched = sched[::-1]
-    rmingeom,rev = DihedScan(atoms,stdargs,con,extracons,revsched)
+
+    if parallel:
+        import multiprocessing
+
+        proclist = [ (atoms,stdargs,con,extracons,sched),
+                     (atoms,stdargs,con,extracons,revsched) ]
+        
+        with multiprocessing.Pool(processes=2) as pool:
+            olists = pool.map(FwdRevDihedScan_worker,proclist)
+        fmingeom,fwd = olists[0]
+        rmingeom,rev = olists[1]
+
+    else:
+        fmingeom,fwd = DihedScan(atoms,stdargs,con,extracons,sched)
+        rmingeom,rev = DihedScan(atoms,stdargs,con,extracons,revsched)
     
-    ase.io.write("tmp.fscan.extxyz",fwd)
-    ase.io.write("tmp.rscan.extxyz",rev)
+    #ase.io.write("tmp.fscan.extxyz",fwd)
+    #ase.io.write("tmp.rscan.extxyz",rev)
     
     scan = []
     
