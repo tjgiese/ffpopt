@@ -105,6 +105,14 @@ if __name__ == "__main__":
         ("--bytype",
          help="If present, then",
          action='store_true')
+
+    
+    parser.add_argument\
+        ("--nlmaxiter",
+         help="Maximum number of nonlinear optimization steps. Default: 300",
+         type=int,
+         default=300)
+    
     
     
     AddStandardOptions(parser)
@@ -119,7 +127,8 @@ if __name__ == "__main__":
     useropts = GetNondefaultArgs(args,parser,
                                  skip=["bond","delta","bytype",
                                        "nprim","maxiter",
-                                       "parm","crd","model"])
+                                       "parm","crd","model",
+                                       "nlmaxiter"])
 
     bonds = [ [int(x) for x in bond.split(",") ] for bond in args.bond ]
 
@@ -257,7 +266,7 @@ if __name__ == "__main__":
         fh.write("\n")
         fh.write(f"if [ ! -e {citname}.py ]; then\n")
         fh.write(f"    echo Creating {citname}.py\n")
-        fh.write(f"    ffpopt-GenDihedFit.py --ase-opt {citname}.json\n")
+        fh.write(f"    ffpopt-GenDihedFit.py --nlmaxiter={args.nlmaxiter} --ase-opt {citname}.json\n")
         fh.write("fi\n")
         fh.write("\n")
 

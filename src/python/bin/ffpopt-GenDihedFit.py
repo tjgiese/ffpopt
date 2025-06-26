@@ -25,8 +25,8 @@ if __name__ == "__main__":
     
     parser.add_argument \
         ("--nlmaxiter",
-         help="Maximum number of nonlinear optimization steps. Default: 200",
-         default=200,
+         help="Maximum number of nonlinear optimization steps. Default: 300",
+         default=300,
          type=int)
 
     parser.add_argument \
