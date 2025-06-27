@@ -105,6 +105,24 @@ class GenCalculator(Calculator):
                 raise Exception(f"Expected ani1x, ani2x, or ani1ccx, but received {self.mode}")
         elif "/" in self.mode:
             from ase.calculators.psi4 import Psi4
+            
+            import os
+            import sys
+            cwd = os.getcwd()
+            if "PSI_SCRATCH" not in os.environ:
+                sys.stderr.write(f"PSI_SCRATCH is unset. Setting to {cwd}\n")
+                os.environ["PSI_SCRATCH"] = cwd
+            else:
+                sdir = os.environ["PSI_SCRATCH"]
+                if len(sdir) == 0:
+                    sys.stderr.write(f"PSI_SCRATCH='{sdir}' does not refer to a directory. Setting to {cwd}\n")
+                    os.environ["PSI_SCRATCH"] = cwd
+                else:
+                    if not os.path.isdir(sdir):
+                        sys.stderr.write(f"PSI_SCRATCH='{sdir}' does not exist. Setting to {cwd}\n")
+                        os.environ["PSI_SCRATCH"] = cwd
+
+            
             theory,basis = self.mode.split("/")
             memory = kwargs.get("memory","1gb")
             num_threads = int(kwargs.get("num_threads",4))
